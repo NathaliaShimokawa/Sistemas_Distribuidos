@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package redesocial;
+
+// Definição das mensagens para a interação com o sistema
+
+// Mensagem para o relógio de sincronização
+message ClockRequest {
+  double relogio_fisico = 1;
+}
+
+message ClockReply {
+  double offset = 1;  // O offset que o coordenador envia para o servidor ajustar o relógio
+}
+
+// Mensagens para postagens, seguidores e mensagens privadas
+message Postagem {
+  string user_id = 1;
+  string conteudo = 2;
+  double timestamp_logico = 3;
+  double timestamp_fisico = 4;
+}
+
+message Mensagem {
+  string from_ = 1;
+  string to = 2;
+  string conteudo = 3;
+  double timestamp_logico = 4;
+}
+
+message Seguir {
+  string seguidor_id = 1;
+  string seguido_id = 2;
+}
+
+// Mensagens de confirmação
+message Ack {
+  string message = 1;
+}
+
+// Serviço que define as operações da rede social
+service RedeSocial {
+  rpc Postar(Postagem) returns (Ack);
+  rpc Seguir(Seguir) returns (Ack);
+  rpc EnviarMensagem(Mensagem) returns (Ack);
+  rpc SincronizarRelogio(ClockRequest) returns (ClockReply);
+}
