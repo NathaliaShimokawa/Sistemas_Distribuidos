@@ -5,10 +5,8 @@ import threading
 from datetime import datetime
 import random
 import os
-
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))  # Garantir import local
-
 import redesocial_pb2
 import redesocial_pb2_grpc
 from clock import get_relogio_fisico
