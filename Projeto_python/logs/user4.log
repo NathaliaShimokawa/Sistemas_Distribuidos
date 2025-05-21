@@ -1439,3 +1439,19 @@
 [2025-05-20 12:17:27] MENSAGEM RECEBIDA de user1: 'Olá user4! - de user1' | ts lógico atualizado: 1589
 [2025-05-20 12:17:29] POST RECEBIDO de user2: 'Post automático de user2' | ts lógico atualizado: 1590
 [2025-05-20 12:17:35] POST RECEBIDO de user1: 'Post automático de user1' | ts lógico atualizado: 1591
+[2025-05-20 23:16:43] SEGUINDO: user1
+[2025-05-20 23:16:43] SEGUINDO: user2
+[2025-05-20 23:16:49] POST RECEBIDO de user2: 'Post automático de user2' | ts lógico atualizado: 3
+[2025-05-20 23:16:51] POST RECEBIDO de user1: 'Post automático de user1' | ts lógico atualizado: 4
+[2025-05-20 23:16:59] POST RECEBIDO de user1: 'Post automático de user1' | ts lógico atualizado: 6
+[2025-05-20 23:17:00] MENSAGEM RECEBIDA de user2: 'Olá user4! - de user2' | ts lógico atualizado: 7
+[2025-05-20 23:17:04] MENSAGEM RECEBIDA de user3: 'Olá user4! - de user3' | ts lógico atualizado: 8
+[2025-05-20 23:17:04] POST RECEBIDO de user2: 'Post automático de user2' | ts lógico atualizado: 9
+[2025-05-20 23:17:08] POST RECEBIDO de user2: 'Post automático de user2' | ts lógico atualizado: 10
+[2025-05-20 23:17:09] POST RECEBIDO de user1: 'Post automático de user1' | ts lógico atualizado: 11
+[2025-05-20 23:17:11] MENSAGEM RECEBIDA de user3: 'Olá user4! - de user3' | ts lógico atualizado: 12
+[2025-05-20 23:17:16] POST RECEBIDO de user2: 'Post automático de user2' | ts lógico atualizado: 13
+[2025-05-20 23:17:23] POST RECEBIDO de user2: 'Post automático de user2' | ts lógico atualizado: 14
+[2025-05-20 23:17:27] POST RECEBIDO de user1: 'Post automático de user1' | ts lógico atualizado: 15
+[2025-05-20 23:17:29] MENSAGEM RECEBIDA de user3: 'Olá user4! - de user3' | ts lógico atualizado: 16
+[2025-05-20 23:17:30] POST RECEBIDO de user1: 'Post automático de user1' | ts lógico atualizado: 17

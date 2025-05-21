@@ -1,0 +1,13 @@
+{
+  "name": "rede-social-node",
+  "version": "1.0.0",
+  "description": "Cliente Node.js para sistema distribuído de rede social",
+  "main": "UserC.js",
+  "scripts": {
+    "start": "node UserC.js"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.8.13",
+    "@grpc/proto-loader": "^0.7.8"
+  }
+}
