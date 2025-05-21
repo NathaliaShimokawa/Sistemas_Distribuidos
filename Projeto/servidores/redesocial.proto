@@ -38,7 +38,7 @@ message Ack {
 // Serviço
 service RedeSocial {
   rpc Postar(Postagem) returns (Ack);
-  rpc Seguir(SeguirRequest) returns (Ack);  // <<< ALTERADO
+  rpc Seguir(SeguirRequest) returns (Ack); 
   rpc EnviarMensagem(Mensagem) returns (Ack);
   rpc SincronizarRelogio(ClockRequest) returns (ClockReply);
 }
