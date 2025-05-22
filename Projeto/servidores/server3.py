@@ -4,7 +4,9 @@ import time
 import threading
 from datetime import datetime
 import random
-import os
+import os, json
+
+from GerenciarArquivo import adicionar_postagem
 
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))  # Importações locais
@@ -43,18 +45,31 @@ def atualizar_lamport(recebido):
 
 # ========== CLASSE DO SERVIDOR ==========
 class RedeSocialServicer(redesocial_pb2_grpc.RedeSocialServicer):
+
     def Postar(self, request, context):
+        print("Recebido:", request.conteudo)
+        
+        try:
+            conteudo_dict = json.loads(request.conteudo)
+            adicionar_postagem(conteudo_dict["user_id"],conteudo_dict["conteudo"])
+        except json.JSONDecodeError as e:
+            escrever_log(f"Erro ao decodificar JSON: {str(e)}")
+            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+            context.set_details("Conteúdo em formato inválido")
+            return redesocial_pb2.Ack(message="Erro no conteúdo")
+
         atualizar_lamport(request.timestamp_logico)
         postagens.append({
-            "user": request.user_id,
-            "conteudo": request.conteudo,
-            "logico": request.timestamp_logico,
-            "fisico": request.timestamp_fisico
+            "conteudo": conteudo_dict
         })
-        escrever_log(f"{request.user_id} postou: {request.conteudo}")
+
+        escrever_log(f'{conteudo_dict["user_id"]} postou: {conteudo_dict["conteudo"]}')
         return redesocial_pb2.Ack(message="Postagem recebida")
 
+
     def Seguir(self, request, context):
+        print("Recebido:", request)
+        print("Campos:", request.seguidor_id, request.seguido_id)
         atualizar_lamport(relogio_lamport)
         seguidores.setdefault(request.seguido_id, []).append(request.seguidor_id)
         escrever_log(f"{request.seguidor_id} agora segue {request.seguido_id}")

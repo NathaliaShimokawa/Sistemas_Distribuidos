@@ -28,7 +28,7 @@ message Mensagem {
   double timestamp_logico = 4;
 }
 
-message SeguirRequest { // <<< RENOMEADO
+message SeguirRequest { 
   string seguidor_id = 1;
   string seguido_id = 2;
 }
