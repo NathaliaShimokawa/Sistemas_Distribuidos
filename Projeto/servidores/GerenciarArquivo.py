@@ -22,6 +22,3 @@ def adicionar_postagem(user_id, conteudo):
     data[user_id].append(conteudo)
     salvar_postagens(data)
     print(f'Postagem adicionada para {user_id}.')
-
-# Exemplo de uso
-

@@ -75,16 +75,39 @@ class RedeSocialServicer(redesocial_pb2_grpc.RedeSocialServicer):
         escrever_log(f"{request.seguidor_id} agora segue {request.seguido_id}")
         return redesocial_pb2.Ack(message="Seguindo com sucesso")
 
+    import json
+
     def EnviarMensagem(self, request, context):
+        print("Recebido:", request.conteudo)
+
+    # # Mensagem em memória (opcional)
+    # mensagem = {
+    #     "from": request.from_,
+    #     "to": request.to,
+    #     "conteudo": request.conteudo,
+    #     "logico": request.timestamp_logico
+    # }
+    # mensagens.append(mensagem)
+    
+        try:
+            conteudo_dict = json.loads(request.conteudo)
+            adicionar_mensagem(conteudo_dict["from_"],conteudo_dict["to"],conteudo_dict["conteudo"])
+        except json.JSONDecodeError as e:
+            escrever_log(f"Erro ao decodificar JSON: {str(e)}")
+            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+            context.set_details("Conteúdo em formato inválido")
+            return redesocial_pb2.Ack(message="Erro no conteúdo")
+    
+        escrever_log(f"{request.from_} enviou mensagem para {request.to}: {request.conteudo}")
+
         atualizar_lamport(request.timestamp_logico)
         mensagens.append({
-            "from": request.from_,
-            "to": request.to,
-            "conteudo": request.conteudo,
-            "logico": request.timestamp_logico
+            "conteudo": conteudo_dict
         })
-        escrever_log(f"{request.from_} → {request.to}: {request.conteudo}")
+
+        escrever_log(f'{conteudo_dict["from_"]} mandou {conteudo_dict["conteudo"]} para {conteudo_dict["to"]}')
         return redesocial_pb2.Ack(message="Mensagem enviada")
+        
 
     def SincronizarRelogio(self, request, context):
         global relogio_fisico
