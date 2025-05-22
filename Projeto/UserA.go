@@ -4,49 +4,60 @@ import (
 	"context"
 	"fmt"
 	"log"
+	pb "projeto/clientes"
 	"time"
 
-	pb "projeto/clientes" // Importa o pacote gerado a partir do proto
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
-	conn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Fatalf("Falha ao conectar: %v", err)
+	servers := []string{
+		"localhost:50051",
+		"localhost:50052",
+		"localhost:50053",
 	}
-	defer conn.Close()
-
-	client := pb.NewRedeSocialClient(conn)
 
 	userId := "UserA"
 	relogioLogico := float64(time.Now().UnixMilli())
 	relogioFisico := float64(time.Now().UnixNano()) / 1e9
 
-	post := &pb.Postagem{
-		UserId:          userId,
-		Conteudo:        "Postagem do UserA.",
-		TimestampLogico: relogioLogico,
-		TimestampFisico: relogioFisico,
-	}
+	for _, addr := range servers {
+		conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			log.Printf("Falha ao conectar ao servidor %s: %v", addr, err)
+			continue
+		}
+		defer conn.Close()
 
-	_, err = client.Postar(context.Background(), post)
-	if err != nil {
-		log.Fatalf("Erro ao postar: %v", err)
-	}
-	fmt.Println("UserA postou uma mensagem.")
+		client := pb.NewRedeSocialClient(conn)
 
-	msg := &pb.Mensagem{
-		From_:           userId,
-		To:              "UserB",
-		Conteudo:        "Oi UserB!",
-		TimestampLogico: relogioLogico + 1,
-	}
+		post := &pb.Postagem{
+			UserId:          userId,
+			Conteudo:        "Postagem do UserA.",
+			TimestampLogico: relogioLogico,
+			TimestampFisico: relogioFisico,
+		}
 
-	_, err = client.EnviarMensagem(context.Background(), msg)
-	if err != nil {
-		log.Fatalf("Erro ao enviar mensagem: %v", err)
+		_, err = client.Postar(context.Background(), post)
+		if err != nil {
+			log.Printf("Erro ao postar no servidor %s: %v", addr, err)
+		} else {
+			fmt.Printf("UserA postou uma mensagem no servidor %s.\n", addr)
+		}
+
+		msg := &pb.Mensagem{
+			From_:           userId,
+			To:              "UserB",
+			Conteudo:        "Oi UserB!",
+			TimestampLogico: relogioLogico + 1,
+		}
+
+		_, err = client.EnviarMensagem(context.Background(), msg)
+		if err != nil {
+			log.Printf("Erro ao enviar mensagem no servidor %s: %v", addr, err)
+		} else {
+			fmt.Printf("UserA enviou uma mensagem para UserB no servidor %s.\n", addr)
+		}
 	}
-	fmt.Println("UserA enviou uma mensagem para UserB.")
 }
