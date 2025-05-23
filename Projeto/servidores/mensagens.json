@@ -4,5 +4,17 @@
     "to": "lucas",
     "conteudo": "qyero embora",
     "timestamp_logico": 50.0
+  },
+  {
+    "from": "lucas",
+    "to": "joao",
+    "conteudo": "ronaldinho",
+    "timestamp_logico": 5.0
+  },
+  {
+    "from": "lucas",
+    "to": "joao",
+    "conteudo": "arroz",
+    "timestamp_logico": 59.0
   }
 ]
