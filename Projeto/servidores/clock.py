@@ -1,29 +1,45 @@
 import time
 import random
 
-# Variável global para o relógio físico
-relogio_fisico = 0
+# ========== RELÓGIO FÍSICO ==========
+relogio_fisico = 0.0
 
 def get_relogio_fisico():
     """
-    Retorna o valor do relógio físico com uma variação aleatória de até 1 segundo.
-    Isso simula o comportamento de um relógio físico que pode atrasar ou adiantar aleatoriamente.
+    Simula um relógio físico com variação aleatória entre -1s e +1s.
     """
     global relogio_fisico
-
-    # Variação aleatória entre -1s e +1s
     variacao = random.uniform(-1.0, 1.0)
     relogio_fisico += variacao
-
-    # Garante que o relógio não tenha valores negativos
     if relogio_fisico < 0:
         relogio_fisico = 0
-    
-    return round(relogio_fisico, 3)  # Arredonda para 3 casas decimais
+    return round(relogio_fisico, 3)
 
-def set_relogio_fisico(novo_relogio):
+def set_relogio_fisico(novo_valor):
     """
-    Define manualmente o valor do relógio físico. Usado em casos de sincronização.
+    Define o valor do relógio físico (após sincronização).
     """
     global relogio_fisico
-    relogio_fisico = novo_relogio
+    relogio_fisico = novo_valor
+
+# ========== RELÓGIO LÓGICO DE LAMPORT ==========
+relogio_lamport = 0
+
+def get_relogio_lamport():
+    return relogio_lamport
+
+def incrementar_lamport():
+    """
+    Incrementa o relógio lógico localmente (evento interno).
+    """
+    global relogio_lamport
+    relogio_lamport += 1
+    return relogio_lamport
+
+def atualizar_lamport(recebido):
+    """
+    Atualiza o relógio lógico com base em um valor recebido (evento de mensagem).
+    """
+    global relogio_lamport
+    relogio_lamport = max(relogio_lamport, recebido) + 1
+    return relogio_lamport

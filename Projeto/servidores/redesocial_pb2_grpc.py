@@ -26,8 +26,7 @@ if _version_not_supported:
 
 
 class RedeSocialStub(object):
-    """Serviço
-    """
+    """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
         """Constructor.
@@ -58,8 +57,7 @@ class RedeSocialStub(object):
 
 
 class RedeSocialServicer(object):
-    """Serviço
-    """
+    """Missing associated documentation comment in .proto file."""
 
     def Postar(self, request, context):
         """Missing associated documentation comment in .proto file."""
@@ -68,8 +66,7 @@ class RedeSocialServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def Seguir(self, request, context):
-        """<<< ALTERADO
-        """
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -118,8 +115,7 @@ def add_RedeSocialServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class RedeSocial(object):
-    """Serviço
-    """
+    """Missing associated documentation comment in .proto file."""
 
     @staticmethod
     def Postar(request,

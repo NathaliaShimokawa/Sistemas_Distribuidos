@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package redesocial;
 
-// Mensagens para sincronização de relógio
 message ClockRequest {
   double relogio_fisico = 1;
 }
@@ -11,7 +10,6 @@ message ClockReply {
   double offset = 1;
 }
 
-// Mensagens principais
 message Postagem {
   string user_id = 1;
   string conteudo = 2;
@@ -26,19 +24,18 @@ message Mensagem {
   double timestamp_logico = 4;
 }
 
-message SeguirRequest { 
-  string seguidor_id = 1;
-  string seguido_id = 2;
+message SeguirRequest {
+  string seguidorid = 1;
+  string seguidoid = 2;
 }
 
 message Ack {
   string message = 1;
 }
 
-// Serviço
 service RedeSocial {
   rpc Postar(Postagem) returns (Ack);
-  rpc Seguir(SeguirRequest) returns (Ack); 
+  rpc Seguir(SeguirRequest) returns (Ack);
   rpc EnviarMensagem(Mensagem) returns (Ack);
   rpc SincronizarRelogio(ClockRequest) returns (ClockReply);
 }

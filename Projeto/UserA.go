@@ -14,8 +14,6 @@ import (
 func main() {
 	servers := []string{
 		"localhost:50051",
-		"localhost:50052",
-		"localhost:50053",
 	}
 
 	userId := "UserA"
@@ -43,13 +41,13 @@ func main() {
 		if err != nil {
 			log.Printf("Erro ao postar no servidor %s: %v", addr, err)
 		} else {
-			fmt.Printf("UserA postou uma mensagem no servidor %s.\n", addr)
+			fmt.Printf("UserA enviou mensagem para UserB")
 		}
 
 		msg := &pb.Mensagem{
 			From_:           userId,
-			To:              "UserB",
-			Conteudo:        "Oi UserB!",
+			To:              "UserA",
+			Conteudo:        "Oi UserA!",
 			TimestampLogico: relogioLogico + 1,
 		}
 
@@ -57,7 +55,7 @@ func main() {
 		if err != nil {
 			log.Printf("Erro ao enviar mensagem no servidor %s: %v", addr, err)
 		} else {
-			fmt.Printf("UserA enviou uma mensagem para UserB no servidor %s.\n", addr)
+			fmt.Printf("")
 		}
 	}
 }

@@ -6,21 +6,23 @@ from datetime import datetime
 import random
 import os, json
 
+from GerenciarMensagens import adicionar_mensagem
+from GerenciarSeguidores import adicionar_seguidor
 from GerenciarArquivo import adicionar_postagem
 
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))  # Importações locais
+sys.path.append(os.path.dirname(os.path.abspath(__file__))) 
 
 import redesocial_pb2
 import redesocial_pb2_grpc
 from clock import get_relogio_fisico
 
-# ========== CONFIGURAÇÕES ==========
+
 SERVER_ID = "server3"
 PORT = 50053
 LOG_FILE = f"../logs/{SERVER_ID}.log"
 
-# ========== ESTADO ==========
+
 usuarios = {}
 seguidores = {}
 postagens = []
@@ -30,7 +32,7 @@ relogio_fisico = get_relogio_fisico()
 
 lock = threading.Lock()
 
-# ========== FUNÇÕES AUXILIARES ==========
+
 def escrever_log(msg):
     now = datetime.now().strftime("%H:%M:%S")
     linha = f"[{now}] [Lamport: {relogio_lamport}] {msg}"
@@ -43,7 +45,6 @@ def atualizar_lamport(recebido):
     with lock:
         relogio_lamport = max(relogio_lamport, recebido) + 1
 
-# ========== CLASSE DO SERVIDOR ==========
 class RedeSocialServicer(redesocial_pb2_grpc.RedeSocialServicer):
 
     def Postar(self, request, context):
@@ -69,45 +70,31 @@ class RedeSocialServicer(redesocial_pb2_grpc.RedeSocialServicer):
 
     def Seguir(self, request, context):
         print("Recebido:", request)
-        print("Campos:", request.seguidor_id, request.seguido_id)
+        print("Campos:", request.seguidorid, request.seguidoid)
+
         atualizar_lamport(relogio_lamport)
-        seguidores.setdefault(request.seguido_id, []).append(request.seguidor_id)
-        escrever_log(f"{request.seguidor_id} agora segue {request.seguido_id}")
+        
+        adicionar_seguidor(request.seguidoid, request.seguidorid)
+
+        escrever_log(f"{request.seguidorid} agora segue {request.seguidoid}")
         return redesocial_pb2.Ack(message="Seguindo com sucesso")
 
-    import json
 
     def EnviarMensagem(self, request, context):
-        print("Recebido:", request.conteudo)
-
-    # # Mensagem em memória (opcional)
-    # mensagem = {
-    #     "from": request.from_,
-    #     "to": request.to,
-    #     "conteudo": request.conteudo,
-    #     "logico": request.timestamp_logico
-    # }
-    # mensagens.append(mensagem)
-    
-        try:
-            conteudo_dict = json.loads(request.conteudo)
-            adicionar_mensagem(conteudo_dict["from_"],conteudo_dict["to"],conteudo_dict["conteudo"])
-        except json.JSONDecodeError as e:
-            escrever_log(f"Erro ao decodificar JSON: {str(e)}")
-            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-            context.set_details("Conteúdo em formato inválido")
-            return redesocial_pb2.Ack(message="Erro no conteúdo")
-    
-        escrever_log(f"{request.from_} enviou mensagem para {request.to}: {request.conteudo}")
+        print("Recebido:", request)
 
         atualizar_lamport(request.timestamp_logico)
-        mensagens.append({
-            "conteudo": conteudo_dict
-        })
 
-        escrever_log(f'{conteudo_dict["from_"]} mandou {conteudo_dict["conteudo"]} para {conteudo_dict["to"]}')
+        adicionar_mensagem(
+            from_=request.from_,
+            to=request.to,
+            conteudo=request.conteudo,
+            logico=request.timestamp_logico
+        )
+
+        escrever_log(f"{request.from_} enviou mensagem para {request.to}: {request.conteudo}")
         return redesocial_pb2.Ack(message="Mensagem enviada")
-        
+
 
     def SincronizarRelogio(self, request, context):
         global relogio_fisico
@@ -116,7 +103,6 @@ class RedeSocialServicer(redesocial_pb2_grpc.RedeSocialServicer):
         escrever_log(f"Sincronização recebida do coordenador. Offset = {offset}ms")
         return redesocial_pb2.ClockReply(offset=offset)
 
-# ========== INICIAR SERVIDOR ==========
 def serve():
     global relogio_fisico
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

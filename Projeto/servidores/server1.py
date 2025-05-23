@@ -6,17 +6,22 @@ from datetime import datetime
 import random
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))  # Garantir import local
+sys.path.append(os.path.dirname(os.path.abspath(__file__))) 
 import redesocial_pb2
 import redesocial_pb2_grpc
-from clock import get_relogio_fisico
+from clock import get_relogio_fisico, atualizar_lamport
 
-# ========== CONFIGURAÇÕES ==========
+
+channel_replica = grpc.insecure_channel('localhost:50052')  
+replica_stub = redesocial_pb2_grpc.RedeSocialStub(channel_replica)
+
+
+
 SERVER_ID = "server1"
 PORT = 50051
 LOG_FILE = f"../logs/{SERVER_ID}.log"
 
-# ========== ESTADO ==========
+
 usuarios = {}
 seguidores = {}
 postagens = []
@@ -60,14 +65,42 @@ class RedeSocialServicer(redesocial_pb2_grpc.RedeSocialServicer):
 
     def EnviarMensagem(self, request, context):
         atualizar_lamport(request.timestamp_logico)
+
+        # Evita replicação infinita
+        is_replicated = False
+        for key, value in context.invocation_metadata():
+            if key == "replicado" and value == "true":
+                is_replicated = True
+                break
+
         mensagens.append({
             "from": request.from_,
             "to": request.to,
             "conteudo": request.conteudo,
             "logico": request.timestamp_logico
         })
-        escrever_log(f"{request.from_} → {request.to}: {request.conteudo}")
+        escrever_log(f"{request.from_} envia mensagem para {request.to}: {request.conteudo}")
+
+        # Replicar para outro servidor, se não for replicado ainda
+        if not is_replicated:
+            try:
+                # Cria um novo request válido para gRPC
+                novo_request = redesocial_pb2.Mensagem(
+                    from_=request.from_,
+                    to=request.to,
+                    conteudo=request.conteudo,
+                    timestamp_logico=request.timestamp_logico
+                )
+
+                metadata = [("replicado", "true")]
+                replica_stub.EnviarMensagem(novo_request, metadata=metadata)
+                escrever_log("Mensagem replicada para o servidor secundário.")
+            except Exception as e:
+                escrever_log(f"Erro ao replicar mensagem: {e}")
+
         return redesocial_pb2.Ack(message="Mensagem enviada")
+
+
 
     def SincronizarRelogio(self, request, context):
         global relogio_fisico
