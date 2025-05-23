@@ -2,6 +2,7 @@ const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
 const path = require('path');
 const readline = require('readline');
+const fs = require('fs');
 
 const PROTO_PATH = path.join(__dirname, '..', 'servidores', 'redesocial.proto');
 
@@ -15,7 +16,6 @@ const packageDef = protoLoader.loadSync(PROTO_PATH, {
 
 const grpcObject = grpc.loadPackageDefinition(packageDef);
 const redeSocial = grpcObject.redesocial;
-
 const client = new redeSocial.RedeSocial('localhost:50053', grpc.credentials.createInsecure());
 
 const rl = readline.createInterface({
@@ -23,106 +23,147 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
-let currentUser = null;
-
-function promptMenu() {
-  console.log('\n=== MENU ===');
-  console.log('1 - Postar');
-  console.log('2 - Enviar mensagem');
-  console.log('3 - Seguir usuário');
-  console.log('4 - Trocar usuário');
-  console.log('0 - Sair');
-  rl.question('Escolha uma opção: ', handleMenuOption);
+function prompt(question) {
+  return new Promise(resolve => rl.question(question, resolve));
 }
 
-function handleMenuOption(option) {
-  switch (option) {
-    case '1':
-      rl.question('Conteúdo da postagem: ', conteudo => {
-        const relogioLogico = Math.floor(Math.random() * 100);
-        const relogioFisico = Date.now();
+let usuarioLogado = '';
 
-        const conteudoJsonString = JSON.stringify({
-          user_id: currentUser,
-          conteudo: conteudo
-        });
+function escutarPostagens() {
+  const stream = client.ReceberPostagens({ user_id: usuarioLogado });
 
-        client.Postar({
-          user_id: currentUser,
-          conteudo: conteudoJsonString,
-          timestamp_logico: relogioLogico,
-          timestamp_fisico: relogioFisico
-        }, (err, response) => {
-          if (err) {
-            console.error('Erro ao postar:', err.message);
-          } else {
-            console.log('Postagem feita com sucesso.');
-          }
-          promptMenu();
-        });
-      });
-      break;
+  stream.on('data', (postagem) => {
+    const dados = JSON.parse(postagem.conteudo);
+    console.log(`\n🔔 Notificação: ${dados.user_id} fez uma nova postagem!`);
+    console.log(`📝 "${dados.conteudo}"\n`);
+  });
 
-    case '2':
-      rl.question('Destinatário: ', to => {
-        rl.question('Mensagem: ', conteudo => {
-          const relogioLogico = Math.floor(Math.random() * 100);
+  stream.on('error', (err) => {
+    console.error('Erro no stream de postagens:', err.message);
+  });
 
-          client.EnviarMensagem({
-            from_: currentUser,
-            to: to,
-            conteudo: conteudo,
-            timestamp_logico: relogioLogico
-          }, (err, res) => {
-            if (err) {
-              console.error('Erro ao enviar mensagem:', err.message);
-            } else {
-              console.log('Mensagem enviada com sucesso.');
-            }
-            promptMenu();
-          });
-        });
-      });
-      break;
-
-    case '3':
-      rl.question('ID do usuário a seguir: ', seguidoid => {
-        client.Seguir({
-          seguidorid: currentUser,
-          seguidoid: seguidoid
-        }, (err, res) => {
-          if (err) {
-            console.error('Erro ao seguir usuário:', err.message);
-          } else {
-            console.log(`Agora você segue ${seguidoid}.`);
-          }
-          promptMenu();
-        });
-      });
-      break;
-
-    case '4':
-      escolherUsuario();
-      break;
-
-    case '0':
-      console.log('Saindo...');
-      rl.close();
-      break;
-
-    default:
-      console.log('Opção inválida.');
-      promptMenu();
-  }
-}
-
-function escolherUsuario() {
-  rl.question('Digite o ID do usuário atual: ', userId => {
-    currentUser = userId.trim();
-    console.log(`Usuário definido como: ${currentUser}`);
-    promptMenu();
+  stream.on('end', () => {
+    console.log('Stream finalizado.');
   });
 }
 
-console.log('Bem-vindo à Rede Social Distribuída!');
-escolherUsuario();
+
+async function menu() {
+  console.log(`\n📱 Bem-vindo, ${usuarioLogado}!`);
+  console.log('1 - Postar');
+  console.log('2 - Enviar mensagem');
+  console.log('3 - Seguir alguém');
+  console.log('4 - Ver conversa com alguém');
+  console.log('5 - Sair');
+
+  const opcao = await prompt('\nEscolha uma opção: ');
+
+  switch (opcao) {
+    case '1': {
+      const conteudo = await prompt('Digite o conteúdo da postagem: ');
+      const relogioLogico = Math.floor(Math.random() * 100);
+      const relogioFisico = Date.now();
+
+      const conteudoJsonString = JSON.stringify({
+        user_id: usuarioLogado,
+        conteudo: conteudo
+      });
+
+      client.Postar({
+        user_id: usuarioLogado,
+        conteudo: conteudoJsonString,
+        timestamp_logico: relogioLogico,
+        timestamp_fisico: relogioFisico
+      }, (err, response) => {
+        if (err) {
+          console.error('❌ Erro ao postar:', err.message);
+        } else {
+          console.log('✅ Postagem enviada com sucesso.');
+        }
+        menu();
+      });
+      break;
+    }
+
+    case '2': {
+      const destino = await prompt('Para quem deseja enviar mensagem? ');
+      const conteudo = await prompt('Digite a mensagem: ');
+      const relogioLogico = Math.floor(Math.random() * 100);
+
+      client.EnviarMensagem({
+        from_: usuarioLogado,
+        to: destino,
+        conteudo: conteudo,
+        timestamp_logico: relogioLogico
+      }, (err, res) => {
+        if (err) {
+          console.error('❌ Erro ao enviar mensagem:', err.message);
+        } else {
+          console.log(`✅ Mensagem enviada para ${destino}.`);
+        }
+        menu();
+      });
+      break;
+    }
+
+    case '3': {
+      const seguido = await prompt('Quem você quer seguir? ');
+      const relogioLogico = Math.floor(Math.random() * 100);
+
+      client.Seguir({
+        seguidoid: seguido,
+        seguidorid: usuarioLogado,
+        relogioLogico
+      }, (err, res) => {
+        if (err) {
+          console.error('❌ Erro ao seguir:', err.message);
+        } else {
+          console.log(`✅ Agora você segue ${seguido}.`);
+        }
+        menu();
+      });
+      break;
+    }
+
+    case '4': {
+      const outro = await prompt('Digite o nome da outra pessoa na conversa: ');
+      const caminho = path.join(__dirname, '..', 'servidores', 'conversas_formatadas.json');
+
+      if (fs.existsSync(caminho)) {
+        const dados = JSON.parse(fs.readFileSync(caminho, 'utf-8'));
+        const chave = [usuarioLogado, outro].sort().join('|');
+        const conversa = dados[chave] || [];
+
+        console.log(`\n💬 Conversa entre ${usuarioLogado} e ${outro}:`);
+        for (const msg of conversa) {
+          const lado = msg.from === usuarioLogado ? 'Você' : outro;
+          console.log(`${lado}: ${msg.conteudo}`);
+        }
+      } else {
+        console.log('⚠️ Nenhuma conversa registrada ainda.');
+      }
+
+      menu();
+      break;
+    }
+
+    case '5':
+      console.log('👋 Saindo...');
+      rl.close();
+      process.exit(0);
+      break;
+
+    default:
+      console.log('Opção inválida!');
+      menu();
+  }
+}
+
+async function iniciar() {
+  console.clear();
+  usuarioLogado = await prompt('Digite seu nome de usuário para login: ');
+  escutarPostagens(); // ← inicia stream de postagens após login
+  menu();
+}
+
+iniciar();

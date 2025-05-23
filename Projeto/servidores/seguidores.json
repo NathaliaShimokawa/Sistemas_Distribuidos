@@ -1,18 +1,11 @@
 {
-  "luc": [
-    "joao"
-  ],
-  "lucas": [
-    "joao",
-    "sa"
-  ],
-  "sa": [
-    "lucas"
-  ],
-  "arroldo": [
-    "lucas"
-  ],
   "joao": [
     "lucas"
+  ],
+  "lucas": [
+    "joao"
+  ],
+  "jose": [
+    "joao"
   ]
 }

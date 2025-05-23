@@ -44,6 +44,7 @@ def atualizar_lamport(recebido):
     global relogio_lamport
     with lock:
         relogio_lamport = max(relogio_lamport, recebido) + 1
+clientes_streams = {}
 
 class RedeSocialServicer(redesocial_pb2_grpc.RedeSocialServicer):
 
@@ -52,7 +53,9 @@ class RedeSocialServicer(redesocial_pb2_grpc.RedeSocialServicer):
         
         try:
             conteudo_dict = json.loads(request.conteudo)
-            adicionar_postagem(conteudo_dict["user_id"],conteudo_dict["conteudo"])
+            user_id = conteudo_dict["user_id"]
+            texto = conteudo_dict["conteudo"]
+            adicionar_postagem(user_id, texto)
         except json.JSONDecodeError as e:
             escrever_log(f"Erro ao decodificar JSON: {str(e)}")
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
@@ -60,12 +63,26 @@ class RedeSocialServicer(redesocial_pb2_grpc.RedeSocialServicer):
             return redesocial_pb2.Ack(message="Erro no conteúdo")
 
         atualizar_lamport(request.timestamp_logico)
-        postagens.append({
-            "conteudo": conteudo_dict
-        })
 
-        escrever_log(f'{conteudo_dict["user_id"]} postou: {conteudo_dict["conteudo"]}')
+        postagem = redesocial_pb2.Postagem(
+            user_id=user_id,
+            conteudo=texto,
+            timestamp_logico=request.timestamp_logico,
+            timestamp_fisico=request.timestamp_fisico,
+        )
+
+        # Enviar para seguidores
+        seguidores_do_user = seguidores.get(user_id, [])
+        for seguidor_id in seguidores_do_user:
+            for cliente_context in clientes_streams.get(seguidor_id, []):
+                try:
+                    cliente_context.send_message(postagem)
+                except Exception as e:
+                    print(f"Erro ao enviar para {seguidor_id}: {e}")
+
+        escrever_log(f'{user_id} postou: {texto}')
         return redesocial_pb2.Ack(message="Postagem recebida")
+
 
 
     def Seguir(self, request, context):
@@ -94,6 +111,26 @@ class RedeSocialServicer(redesocial_pb2_grpc.RedeSocialServicer):
 
         escrever_log(f"{request.from_} enviou mensagem para {request.to}: {request.conteudo}")
         return redesocial_pb2.Ack(message="Mensagem enviada")
+    
+    def ReceberPostagens(self, request, context):
+        user_id = request.user_id
+        print(f"📡 Usuário conectado para receber postagens: {user_id}")
+
+        # Cria uma fila de mensagens para esse usuário
+        from queue import Queue
+        fila = Queue()
+        self.usuarios_conectados[user_id] = fila
+
+        try:
+            while True:
+                postagem = fila.get()  # espera uma nova postagem chegar
+                yield postagem  # envia para o cliente
+        except Exception as e:
+            print(f"⚠️ Erro no stream do usuário {user_id}: {e}")
+        finally:
+            # Limpa recursos ao desconectar
+            print(f"🔌 Stream encerrado para {user_id}")
+            del self.usuarios_conectados[user_id]
 
 
     def SincronizarRelogio(self, request, context):

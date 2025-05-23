@@ -49,6 +49,11 @@ class RedeSocialStub(object):
                 request_serializer=redesocial__pb2.Mensagem.SerializeToString,
                 response_deserializer=redesocial__pb2.Ack.FromString,
                 _registered_method=True)
+        self.ReceberPostagens = channel.unary_stream(
+                '/redesocial.RedeSocial/ReceberPostagens',
+                request_serializer=redesocial__pb2.StreamRequest.SerializeToString,
+                response_deserializer=redesocial__pb2.Postagem.FromString,
+                _registered_method=True)
         self.SincronizarRelogio = channel.unary_unary(
                 '/redesocial.RedeSocial/SincronizarRelogio',
                 request_serializer=redesocial__pb2.ClockRequest.SerializeToString,
@@ -77,6 +82,12 @@ class RedeSocialServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ReceberPostagens(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def SincronizarRelogio(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -100,6 +111,11 @@ def add_RedeSocialServicer_to_server(servicer, server):
                     servicer.EnviarMensagem,
                     request_deserializer=redesocial__pb2.Mensagem.FromString,
                     response_serializer=redesocial__pb2.Ack.SerializeToString,
+            ),
+            'ReceberPostagens': grpc.unary_stream_rpc_method_handler(
+                    servicer.ReceberPostagens,
+                    request_deserializer=redesocial__pb2.StreamRequest.FromString,
+                    response_serializer=redesocial__pb2.Postagem.SerializeToString,
             ),
             'SincronizarRelogio': grpc.unary_unary_rpc_method_handler(
                     servicer.SincronizarRelogio,
@@ -188,6 +204,33 @@ class RedeSocial(object):
             '/redesocial.RedeSocial/EnviarMensagem',
             redesocial__pb2.Mensagem.SerializeToString,
             redesocial__pb2.Ack.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ReceberPostagens(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_stream(
+            request,
+            target,
+            '/redesocial.RedeSocial/ReceberPostagens',
+            redesocial__pb2.StreamRequest.SerializeToString,
+            redesocial__pb2.Postagem.FromString,
             options,
             channel_credentials,
             insecure,
