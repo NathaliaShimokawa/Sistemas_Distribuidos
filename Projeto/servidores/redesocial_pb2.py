@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10redesocial.proto\x12\nredesocial\"&\n\x0c\x43lockRequest\x12\x16\n\x0erelogio_fisico\x18\x01 \x01(\x01\"\x1c\n\nClockReply\x12\x0e\n\x06offset\x18\x01 \x01(\x01\"a\n\x08Postagem\x12\x0f\n\x07user_id\x18\x01 \x01(\t\x12\x10\n\x08\x63onteudo\x18\x02 \x01(\t\x12\x18\n\x10timestamp_logico\x18\x03 \x01(\x01\x12\x18\n\x10timestamp_fisico\x18\x04 \x01(\x01\"Q\n\x08Mensagem\x12\r\n\x05\x66rom_\x18\x01 \x01(\t\x12\n\n\x02to\x18\x02 \x01(\t\x12\x10\n\x08\x63onteudo\x18\x03 \x01(\t\x12\x18\n\x10timestamp_logico\x18\x04 \x01(\x01\"6\n\rSeguirRequest\x12\x12\n\nseguidorid\x18\x01 \x01(\t\x12\x11\n\tseguidoid\x18\x02 \x01(\t\"\x16\n\x03\x41\x63k\x12\x0f\n\x07message\x18\x01 \x01(\t2\xf4\x01\n\nRedeSocial\x12/\n\x06Postar\x12\x14.redesocial.Postagem\x1a\x0f.redesocial.Ack\x12\x34\n\x06Seguir\x12\x19.redesocial.SeguirRequest\x1a\x0f.redesocial.Ack\x12\x37\n\x0e\x45nviarMensagem\x12\x14.redesocial.Mensagem\x1a\x0f.redesocial.Ack\x12\x46\n\x12SincronizarRelogio\x12\x18.redesocial.ClockRequest\x1a\x16.redesocial.ClockReplyb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10redesocial.proto\x12\nredesocial\"&\n\x0c\x43lockRequest\x12\x16\n\x0erelogio_fisico\x18\x01 \x01(\x01\"\x1c\n\nClockReply\x12\x0e\n\x06offset\x18\x01 \x01(\x01\"a\n\x08Postagem\x12\x0f\n\x07user_id\x18\x01 \x01(\t\x12\x10\n\x08\x63onteudo\x18\x02 \x01(\t\x12\x18\n\x10timestamp_logico\x18\x03 \x01(\x01\x12\x18\n\x10timestamp_fisico\x18\x04 \x01(\x01\"Q\n\x08Mensagem\x12\r\n\x05\x66rom_\x18\x01 \x01(\t\x12\n\n\x02to\x18\x02 \x01(\t\x12\x10\n\x08\x63onteudo\x18\x03 \x01(\t\x12\x18\n\x10timestamp_logico\x18\x04 \x01(\x01\"6\n\rSeguirRequest\x12\x12\n\nseguidorid\x18\x01 \x01(\t\x12\x11\n\tseguidoid\x18\x02 \x01(\t\"\x16\n\x03\x41\x63k\x12\x0f\n\x07message\x18\x01 \x01(\t\" \n\rStreamRequest\x12\x0f\n\x07user_id\x18\x01 \x01(\t2\xbb\x02\n\nRedeSocial\x12/\n\x06Postar\x12\x14.redesocial.Postagem\x1a\x0f.redesocial.Ack\x12\x34\n\x06Seguir\x12\x19.redesocial.SeguirRequest\x1a\x0f.redesocial.Ack\x12\x37\n\x0e\x45nviarMensagem\x12\x14.redesocial.Mensagem\x1a\x0f.redesocial.Ack\x12\x45\n\x10ReceberPostagens\x12\x19.redesocial.StreamRequest\x1a\x14.redesocial.Postagem0\x01\x12\x46\n\x12SincronizarRelogio\x12\x18.redesocial.ClockRequest\x1a\x16.redesocial.ClockReplyb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -43,6 +43,8 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_SEGUIRREQUEST']._serialized_end=338
   _globals['_ACK']._serialized_start=340
   _globals['_ACK']._serialized_end=362
-  _globals['_REDESOCIAL']._serialized_start=365
-  _globals['_REDESOCIAL']._serialized_end=609
+  _globals['_STREAMREQUEST']._serialized_start=364
+  _globals['_STREAMREQUEST']._serialized_end=396
+  _globals['_REDESOCIAL']._serialized_start=399
+  _globals['_REDESOCIAL']._serialized_end=714
 # @@protoc_insertion_point(module_scope)

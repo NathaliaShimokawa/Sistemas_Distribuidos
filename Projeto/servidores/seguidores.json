@@ -1,12 +1,11 @@
 {
-  "luc": [
-    "joao"
+  "joao": [
+    "lucas"
   ],
   "lucas": [
-    "joao",
-    "sa"
+    "joao"
   ],
-  "sa": [
-    "lucas"
+  "jose": [
+    "joao"
   ]
 }

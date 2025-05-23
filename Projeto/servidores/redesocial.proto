@@ -33,9 +33,15 @@ message Ack {
   string message = 1;
 }
 
+message StreamRequest {
+  string user_id = 1;
+}
+
+
 service RedeSocial {
   rpc Postar(Postagem) returns (Ack);
   rpc Seguir(SeguirRequest) returns (Ack);
   rpc EnviarMensagem(Mensagem) returns (Ack);
+  rpc ReceberPostagens(StreamRequest) returns (stream Postagem);
   rpc SincronizarRelogio(ClockRequest) returns (ClockReply);
 }

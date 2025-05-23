@@ -1,0 +1,50 @@
+{
+  "joao|lucas": [
+    {
+      "from": "joao",
+      "to": "lucas",
+      "conteudo": "oi",
+      "timestamp_logico": 12.0
+    },
+    {
+      "from": "lucas",
+      "to": "joao",
+      "conteudo": "se lascar",
+      "timestamp_logico": 56.0
+    },
+    {
+      "from": "joao",
+      "to": "lucas",
+      "conteudo": "ola",
+      "timestamp_logico": 52.0
+    },
+    {
+      "from": "lucas",
+      "to": "joao",
+      "conteudo": "oi",
+      "timestamp_logico": 31.0
+    },
+    {
+      "from": "lucas",
+      "to": "joao",
+      "conteudo": "quero ir embora",
+      "timestamp_logico": 4.0
+    }
+  ],
+  "lucas|lucas": [
+    {
+      "from": "lucas",
+      "to": "lucas",
+      "conteudo": "oi",
+      "timestamp_logico": 77.0
+    }
+  ],
+  "joao|joao": [
+    {
+      "from": "joao",
+      "to": "joao",
+      "conteudo": "tudo bem?",
+      "timestamp_logico": 70.0
+    }
+  ]
+}
