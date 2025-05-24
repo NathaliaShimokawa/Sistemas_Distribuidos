@@ -34,8 +34,8 @@ function escutarPostagens() {
 
   stream.on('data', (postagem) => {
     const dados = JSON.parse(postagem.conteudo);
-    console.log(`\n🔔 Notificação: ${dados.user_id} fez uma nova postagem!`);
-    console.log(`📝 "${dados.conteudo}"\n`);
+    console.log(`\nNotificação: ${dados.user_id} fez uma nova postagem!`);
+    console.log(`"${dados.conteudo}"\n`);
   });
 
   stream.on('error', (err) => {
@@ -49,7 +49,7 @@ function escutarPostagens() {
 
 
 async function menu() {
-  console.log(`\n📱 Bem-vindo, ${usuarioLogado}!`);
+  console.log(`\nBem-vindo, ${usuarioLogado}!`);
   console.log('1 - Postar');
   console.log('2 - Enviar mensagem');
   console.log('3 - Seguir alguém');
@@ -76,9 +76,9 @@ async function menu() {
         timestamp_fisico: relogioFisico
       }, (err, response) => {
         if (err) {
-          console.error('❌ Erro ao postar:', err.message);
+          console.error('Erro ao postar:', err.message);
         } else {
-          console.log('✅ Postagem enviada com sucesso.');
+          console.log('Postagem enviada com sucesso.');
         }
         menu();
       });
@@ -97,9 +97,9 @@ async function menu() {
         timestamp_logico: relogioLogico
       }, (err, res) => {
         if (err) {
-          console.error('❌ Erro ao enviar mensagem:', err.message);
+          console.error(' Erro ao enviar mensagem:', err.message);
         } else {
-          console.log(`✅ Mensagem enviada para ${destino}.`);
+          console.log(`Mensagem enviada para ${destino}.`);
         }
         menu();
       });
@@ -116,9 +116,9 @@ async function menu() {
         relogioLogico
       }, (err, res) => {
         if (err) {
-          console.error('❌ Erro ao seguir:', err.message);
+          console.error('Erro ao seguir:', err.message);
         } else {
-          console.log(`✅ Agora você segue ${seguido}.`);
+          console.log(`Agora você segue ${seguido}.`);
         }
         menu();
       });
@@ -134,13 +134,13 @@ async function menu() {
         const chave = [usuarioLogado, outro].sort().join('|');
         const conversa = dados[chave] || [];
 
-        console.log(`\n💬 Conversa entre ${usuarioLogado} e ${outro}:`);
+        console.log(`\nConversa entre ${usuarioLogado} e ${outro}:`);
         for (const msg of conversa) {
           const lado = msg.from === usuarioLogado ? 'Você' : outro;
           console.log(`${lado}: ${msg.conteudo}`);
         }
       } else {
-        console.log('⚠️ Nenhuma conversa registrada ainda.');
+        console.log('Nenhuma conversa registrada ainda.');
       }
 
       menu();
@@ -148,7 +148,7 @@ async function menu() {
     }
 
     case '5':
-      console.log('👋 Saindo...');
+      console.log('Saindo...');
       rl.close();
       process.exit(0);
       break;
@@ -162,7 +162,7 @@ async function menu() {
 async function iniciar() {
   console.clear();
   usuarioLogado = await prompt('Digite seu nome de usuário para login: ');
-  escutarPostagens(); // ← inicia stream de postagens após login
+  escutarPostagens(); 
   menu();
 }
 

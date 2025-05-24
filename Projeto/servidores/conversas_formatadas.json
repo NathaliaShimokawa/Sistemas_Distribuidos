@@ -46,5 +46,33 @@
       "conteudo": "tudo bem?",
       "timestamp_logico": 70.0
     }
+  ],
+  "jake|lucas": [
+    {
+      "from": "jake",
+      "to": "lucas",
+      "conteudo": "ola, tudo bem?",
+      "timestamp_logico": 13.0
+    }
+  ],
+  "jake|joao": [
+    {
+      "from": "jake",
+      "to": "joao",
+      "conteudo": "ola",
+      "timestamp_logico": 2.0
+    },
+    {
+      "from": "jake",
+      "to": "joao",
+      "conteudo": "ola",
+      "timestamp_logico": 2.0
+    },
+    {
+      "from": "jake",
+      "to": "joao",
+      "conteudo": "ola",
+      "timestamp_logico": 2.0
+    }
   ]
 }

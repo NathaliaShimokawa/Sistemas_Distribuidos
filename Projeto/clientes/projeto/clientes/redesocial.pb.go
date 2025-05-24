@@ -21,7 +21,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Mensagens para sincronização de relógio
 type ClockRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	RelogioFisico float64                `protobuf:"fixed64,1,opt,name=relogio_fisico,json=relogioFisico,proto3" json:"relogio_fisico,omitempty"`
@@ -110,7 +109,6 @@ func (x *ClockReply) GetOffset() float64 {
 	return 0
 }
 
-// Mensagens principais
 type Postagem struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	UserId          string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -249,8 +247,8 @@ func (x *Mensagem) GetTimestampLogico() float64 {
 
 type SeguirRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	SeguidorId    string                 `protobuf:"bytes,1,opt,name=seguidor_id,json=seguidorId,proto3" json:"seguidor_id,omitempty"`
-	SeguidoId     string                 `protobuf:"bytes,2,opt,name=seguido_id,json=seguidoId,proto3" json:"seguido_id,omitempty"`
+	Seguidorid    string                 `protobuf:"bytes,1,opt,name=seguidorid,proto3" json:"seguidorid,omitempty"`
+	Seguidoid     string                 `protobuf:"bytes,2,opt,name=seguidoid,proto3" json:"seguidoid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -285,16 +283,16 @@ func (*SeguirRequest) Descriptor() ([]byte, []int) {
 	return file_redesocial_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *SeguirRequest) GetSeguidorId() string {
+func (x *SeguirRequest) GetSeguidorid() string {
 	if x != nil {
-		return x.SeguidorId
+		return x.Seguidorid
 	}
 	return ""
 }
 
-func (x *SeguirRequest) GetSeguidoId() string {
+func (x *SeguirRequest) GetSeguidoid() string {
 	if x != nil {
-		return x.SeguidoId
+		return x.Seguidoid
 	}
 	return ""
 }
@@ -343,6 +341,50 @@ func (x *Ack) GetMessage() string {
 	return ""
 }
 
+type StreamRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamRequest) Reset() {
+	*x = StreamRequest{}
+	mi := &file_redesocial_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamRequest) ProtoMessage() {}
+
+func (x *StreamRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_redesocial_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamRequest.ProtoReflect.Descriptor instead.
+func (*StreamRequest) Descriptor() ([]byte, []int) {
+	return file_redesocial_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *StreamRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
 var File_redesocial_proto protoreflect.FileDescriptor
 
 const file_redesocial_proto_rawDesc = "" +
@@ -363,19 +405,22 @@ const file_redesocial_proto_rawDesc = "" +
 	"\x05from_\x18\x01 \x01(\tR\x04from\x12\x0e\n" +
 	"\x02to\x18\x02 \x01(\tR\x02to\x12\x1a\n" +
 	"\bconteudo\x18\x03 \x01(\tR\bconteudo\x12)\n" +
-	"\x10timestamp_logico\x18\x04 \x01(\x01R\x0ftimestampLogico\"O\n" +
-	"\rSeguirRequest\x12\x1f\n" +
-	"\vseguidor_id\x18\x01 \x01(\tR\n" +
-	"seguidorId\x12\x1d\n" +
+	"\x10timestamp_logico\x18\x04 \x01(\x01R\x0ftimestampLogico\"M\n" +
+	"\rSeguirRequest\x12\x1e\n" +
 	"\n" +
-	"seguido_id\x18\x02 \x01(\tR\tseguidoId\"\x1f\n" +
+	"seguidorid\x18\x01 \x01(\tR\n" +
+	"seguidorid\x12\x1c\n" +
+	"\tseguidoid\x18\x02 \x01(\tR\tseguidoid\"\x1f\n" +
 	"\x03Ack\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage2\xf4\x01\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage\"(\n" +
+	"\rStreamRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId2\xbb\x02\n" +
 	"\n" +
 	"RedeSocial\x12/\n" +
 	"\x06Postar\x12\x14.redesocial.Postagem\x1a\x0f.redesocial.Ack\x124\n" +
 	"\x06Seguir\x12\x19.redesocial.SeguirRequest\x1a\x0f.redesocial.Ack\x127\n" +
-	"\x0eEnviarMensagem\x12\x14.redesocial.Mensagem\x1a\x0f.redesocial.Ack\x12F\n" +
+	"\x0eEnviarMensagem\x12\x14.redesocial.Mensagem\x1a\x0f.redesocial.Ack\x12E\n" +
+	"\x10ReceberPostagens\x12\x19.redesocial.StreamRequest\x1a\x14.redesocial.Postagem0\x01\x12F\n" +
 	"\x12SincronizarRelogio\x12\x18.redesocial.ClockRequest\x1a\x16.redesocial.ClockReplyB\x12Z\x10projeto/clientesb\x06proto3"
 
 var (
@@ -390,7 +435,7 @@ func file_redesocial_proto_rawDescGZIP() []byte {
 	return file_redesocial_proto_rawDescData
 }
 
-var file_redesocial_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_redesocial_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_redesocial_proto_goTypes = []any{
 	(*ClockRequest)(nil),  // 0: redesocial.ClockRequest
 	(*ClockReply)(nil),    // 1: redesocial.ClockReply
@@ -398,18 +443,21 @@ var file_redesocial_proto_goTypes = []any{
 	(*Mensagem)(nil),      // 3: redesocial.Mensagem
 	(*SeguirRequest)(nil), // 4: redesocial.SeguirRequest
 	(*Ack)(nil),           // 5: redesocial.Ack
+	(*StreamRequest)(nil), // 6: redesocial.StreamRequest
 }
 var file_redesocial_proto_depIdxs = []int32{
 	2, // 0: redesocial.RedeSocial.Postar:input_type -> redesocial.Postagem
 	4, // 1: redesocial.RedeSocial.Seguir:input_type -> redesocial.SeguirRequest
 	3, // 2: redesocial.RedeSocial.EnviarMensagem:input_type -> redesocial.Mensagem
-	0, // 3: redesocial.RedeSocial.SincronizarRelogio:input_type -> redesocial.ClockRequest
-	5, // 4: redesocial.RedeSocial.Postar:output_type -> redesocial.Ack
-	5, // 5: redesocial.RedeSocial.Seguir:output_type -> redesocial.Ack
-	5, // 6: redesocial.RedeSocial.EnviarMensagem:output_type -> redesocial.Ack
-	1, // 7: redesocial.RedeSocial.SincronizarRelogio:output_type -> redesocial.ClockReply
-	4, // [4:8] is the sub-list for method output_type
-	0, // [0:4] is the sub-list for method input_type
+	6, // 3: redesocial.RedeSocial.ReceberPostagens:input_type -> redesocial.StreamRequest
+	0, // 4: redesocial.RedeSocial.SincronizarRelogio:input_type -> redesocial.ClockRequest
+	5, // 5: redesocial.RedeSocial.Postar:output_type -> redesocial.Ack
+	5, // 6: redesocial.RedeSocial.Seguir:output_type -> redesocial.Ack
+	5, // 7: redesocial.RedeSocial.EnviarMensagem:output_type -> redesocial.Ack
+	2, // 8: redesocial.RedeSocial.ReceberPostagens:output_type -> redesocial.Postagem
+	1, // 9: redesocial.RedeSocial.SincronizarRelogio:output_type -> redesocial.ClockReply
+	5, // [5:10] is the sub-list for method output_type
+	0, // [0:5] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -426,7 +474,7 @@ func file_redesocial_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_redesocial_proto_rawDesc), len(file_redesocial_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

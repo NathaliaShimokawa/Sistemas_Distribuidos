@@ -71,7 +71,6 @@ class RedeSocialServicer(redesocial_pb2_grpc.RedeSocialServicer):
             timestamp_fisico=request.timestamp_fisico,
         )
 
-        # Enviar para seguidores
         seguidores_do_user = seguidores.get(user_id, [])
         for seguidor_id in seguidores_do_user:
             for cliente_context in clientes_streams.get(seguidor_id, []):
@@ -114,22 +113,20 @@ class RedeSocialServicer(redesocial_pb2_grpc.RedeSocialServicer):
     
     def ReceberPostagens(self, request, context):
         user_id = request.user_id
-        print(f"📡 Usuário conectado para receber postagens: {user_id}")
+        print(f"Usuário conectado para receber postagens: {user_id}")
 
-        # Cria uma fila de mensagens para esse usuário
         from queue import Queue
         fila = Queue()
         self.usuarios_conectados[user_id] = fila
 
         try:
             while True:
-                postagem = fila.get()  # espera uma nova postagem chegar
-                yield postagem  # envia para o cliente
+                postagem = fila.get() 
+                yield postagem 
         except Exception as e:
-            print(f"⚠️ Erro no stream do usuário {user_id}: {e}")
+            print(f"Erro no stream do usuário {user_id}: {e}")
         finally:
-            # Limpa recursos ao desconectar
-            print(f"🔌 Stream encerrado para {user_id}")
+            print(f"Stream encerrado para {user_id}")
             del self.usuarios_conectados[user_id]
 
 
@@ -151,7 +148,7 @@ def serve():
     try:
         while True:
             time.sleep(5)
-            relogio_fisico = get_relogio_fisico()  # Atualiza relógio físico com variação
+            relogio_fisico = get_relogio_fisico() 
     except KeyboardInterrupt:
         escrever_log("Servidor encerrado.")
         server.stop(0)

@@ -22,18 +22,18 @@ const (
 	RedeSocial_Postar_FullMethodName             = "/redesocial.RedeSocial/Postar"
 	RedeSocial_Seguir_FullMethodName             = "/redesocial.RedeSocial/Seguir"
 	RedeSocial_EnviarMensagem_FullMethodName     = "/redesocial.RedeSocial/EnviarMensagem"
+	RedeSocial_ReceberPostagens_FullMethodName   = "/redesocial.RedeSocial/ReceberPostagens"
 	RedeSocial_SincronizarRelogio_FullMethodName = "/redesocial.RedeSocial/SincronizarRelogio"
 )
 
 // RedeSocialClient is the client API for RedeSocial service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-//
-// Serviço
 type RedeSocialClient interface {
 	Postar(ctx context.Context, in *Postagem, opts ...grpc.CallOption) (*Ack, error)
 	Seguir(ctx context.Context, in *SeguirRequest, opts ...grpc.CallOption) (*Ack, error)
 	EnviarMensagem(ctx context.Context, in *Mensagem, opts ...grpc.CallOption) (*Ack, error)
+	ReceberPostagens(ctx context.Context, in *StreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Postagem], error)
 	SincronizarRelogio(ctx context.Context, in *ClockRequest, opts ...grpc.CallOption) (*ClockReply, error)
 }
 
@@ -75,6 +75,25 @@ func (c *redeSocialClient) EnviarMensagem(ctx context.Context, in *Mensagem, opt
 	return out, nil
 }
 
+func (c *redeSocialClient) ReceberPostagens(ctx context.Context, in *StreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Postagem], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &RedeSocial_ServiceDesc.Streams[0], RedeSocial_ReceberPostagens_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamRequest, Postagem]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type RedeSocial_ReceberPostagensClient = grpc.ServerStreamingClient[Postagem]
+
 func (c *redeSocialClient) SincronizarRelogio(ctx context.Context, in *ClockRequest, opts ...grpc.CallOption) (*ClockReply, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ClockReply)
@@ -88,12 +107,11 @@ func (c *redeSocialClient) SincronizarRelogio(ctx context.Context, in *ClockRequ
 // RedeSocialServer is the server API for RedeSocial service.
 // All implementations must embed UnimplementedRedeSocialServer
 // for forward compatibility.
-//
-// Serviço
 type RedeSocialServer interface {
 	Postar(context.Context, *Postagem) (*Ack, error)
 	Seguir(context.Context, *SeguirRequest) (*Ack, error)
 	EnviarMensagem(context.Context, *Mensagem) (*Ack, error)
+	ReceberPostagens(*StreamRequest, grpc.ServerStreamingServer[Postagem]) error
 	SincronizarRelogio(context.Context, *ClockRequest) (*ClockReply, error)
 	mustEmbedUnimplementedRedeSocialServer()
 }
@@ -113,6 +131,9 @@ func (UnimplementedRedeSocialServer) Seguir(context.Context, *SeguirRequest) (*A
 }
 func (UnimplementedRedeSocialServer) EnviarMensagem(context.Context, *Mensagem) (*Ack, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EnviarMensagem not implemented")
+}
+func (UnimplementedRedeSocialServer) ReceberPostagens(*StreamRequest, grpc.ServerStreamingServer[Postagem]) error {
+	return status.Errorf(codes.Unimplemented, "method ReceberPostagens not implemented")
 }
 func (UnimplementedRedeSocialServer) SincronizarRelogio(context.Context, *ClockRequest) (*ClockReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SincronizarRelogio not implemented")
@@ -192,6 +213,17 @@ func _RedeSocial_EnviarMensagem_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RedeSocial_ReceberPostagens_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(RedeSocialServer).ReceberPostagens(m, &grpc.GenericServerStream[StreamRequest, Postagem]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type RedeSocial_ReceberPostagensServer = grpc.ServerStreamingServer[Postagem]
+
 func _RedeSocial_SincronizarRelogio_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ClockRequest)
 	if err := dec(in); err != nil {
@@ -234,6 +266,12 @@ var RedeSocial_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _RedeSocial_SincronizarRelogio_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "ReceberPostagens",
+			Handler:       _RedeSocial_ReceberPostagens_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "redesocial.proto",
 }

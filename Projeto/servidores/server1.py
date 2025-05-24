@@ -5,22 +5,22 @@ import threading
 from datetime import datetime
 import random
 import os
+import json
+
+from GerenciarMensagens import adicionar_mensagem
+from GerenciarSeguidores import adicionar_seguidor
+from GerenciarArquivo import adicionar_postagem
+
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__))) 
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 import redesocial_pb2
 import redesocial_pb2_grpc
-from clock import get_relogio_fisico, atualizar_lamport
-
-
-channel_replica = grpc.insecure_channel('localhost:50052')  
-replica_stub = redesocial_pb2_grpc.RedeSocialStub(channel_replica)
-
-
+from clock import get_relogio_fisico
 
 SERVER_ID = "server1"
 PORT = 50051
 LOG_FILE = f"../logs/{SERVER_ID}.log"
-
 
 usuarios = {}
 seguidores = {}
@@ -31,7 +31,12 @@ relogio_fisico = get_relogio_fisico()
 
 lock = threading.Lock()
 
-# ========== FUNÇÕES AUXILIARES ==========
+channel_server2 = grpc.insecure_channel('localhost:50052')
+replica_stub_server2 = redesocial_pb2_grpc.RedeSocialStub(channel_server2)
+
+channel_server3 = grpc.insecure_channel('localhost:50053')
+replica_stub_server3 = redesocial_pb2_grpc.RedeSocialStub(channel_server3)
+
 def escrever_log(msg):
     now = datetime.now().strftime("%H:%M:%S")
     linha = f"[{now}] [Lamport: {relogio_lamport}] {msg}"
@@ -44,63 +49,113 @@ def atualizar_lamport(recebido):
     with lock:
         relogio_lamport = max(relogio_lamport, recebido) + 1
 
-# ========== CLASSE DO SERVIDOR ==========
+clientes_streams = {}
+
 class RedeSocialServicer(redesocial_pb2_grpc.RedeSocialServicer):
+
     def Postar(self, request, context):
+        print("Recebido:", request.conteudo)
+        
+        try:
+            conteudo_dict = json.loads(request.conteudo)
+            user_id = conteudo_dict["user_id"]
+            texto = conteudo_dict["conteudo"]
+            adicionar_postagem(user_id, texto)
+        except json.JSONDecodeError as e:
+            escrever_log(f"Erro ao decodificar JSON: {str(e)}")
+            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+            context.set_details("Conteúdo em formato inválido")
+            return redesocial_pb2.Ack(message="Erro no conteúdo")
+
         atualizar_lamport(request.timestamp_logico)
-        postagens.append({
-            "user": request.user_id,
-            "conteudo": request.conteudo,
-            "logico": request.timestamp_logico,
-            "fisico": request.timestamp_fisico
-        })
-        escrever_log(f"{request.user_id} postou: {request.conteudo}")
+
+        postagem = redesocial_pb2.Postagem(
+            user_id=user_id,
+            conteudo=texto,
+            timestamp_logico=request.timestamp_logico,
+            timestamp_fisico=request.timestamp_fisico,
+        )
+
+        seguidores_do_user = seguidores.get(user_id, [])
+        for seguidor_id in seguidores_do_user:
+            for cliente_context in clientes_streams.get(seguidor_id, []):
+                try:
+                    cliente_context.send_message(postagem)
+                except Exception as e:
+                    print(f"Erro ao enviar para {seguidor_id}: {e}")
+
+        escrever_log(f'{user_id} postou: {texto}')
         return redesocial_pb2.Ack(message="Postagem recebida")
 
     def Seguir(self, request, context):
+        print("Recebido:", request)
+        print("Campos:", request.seguidorid, request.seguidoid)
+
         atualizar_lamport(relogio_lamport)
-        seguidores.setdefault(request.seguido_id, []).append(request.seguidor_id)
-        escrever_log(f"{request.seguidor_id} agora segue {request.seguido_id}")
+        
+        adicionar_seguidor(request.seguidoid, request.seguidorid)
+
+        escrever_log(f"{request.seguidorid} agora segue {request.seguidoid}")
         return redesocial_pb2.Ack(message="Seguindo com sucesso")
 
     def EnviarMensagem(self, request, context):
+        print("Recebido:", request)
+
         atualizar_lamport(request.timestamp_logico)
 
-        # Evita replicação infinita
+        adicionar_mensagem(
+            from_=request.from_,
+            to=request.to,
+            conteudo=request.conteudo,
+            logico=request.timestamp_logico
+        )
+
+        escrever_log(f"{request.from_} enviou mensagem para {request.to}: {request.conteudo}")
+
         is_replicated = False
         for key, value in context.invocation_metadata():
             if key == "replicado" and value == "true":
                 is_replicated = True
                 break
 
-        mensagens.append({
-            "from": request.from_,
-            "to": request.to,
-            "conteudo": request.conteudo,
-            "logico": request.timestamp_logico
-        })
-        escrever_log(f"{request.from_} envia mensagem para {request.to}: {request.conteudo}")
-
-        # Replicar para outro servidor, se não for replicado ainda
         if not is_replicated:
             try:
-                # Cria um novo request válido para gRPC
                 novo_request = redesocial_pb2.Mensagem(
                     from_=request.from_,
                     to=request.to,
                     conteudo=request.conteudo,
                     timestamp_logico=request.timestamp_logico
                 )
-
                 metadata = [("replicado", "true")]
-                replica_stub.EnviarMensagem(novo_request, metadata=metadata)
-                escrever_log("Mensagem replicada para o servidor secundário.")
+
+                replica_stub_server2.EnviarMensagem(novo_request, metadata=metadata)
+                replica_stub_server3.EnviarMensagem(novo_request, metadata=metadata)
+
+                escrever_log("Mensagem replicada para server2 e server3.")
             except Exception as e:
                 escrever_log(f"Erro ao replicar mensagem: {e}")
 
         return redesocial_pb2.Ack(message="Mensagem enviada")
 
+    def ReceberPostagens(self, request, context):
+        user_id = request.user_id
+        print(f"Usuário conectado para receber postagens: {user_id}")
 
+        from queue import Queue
+        fila = Queue()
+        clientes_streams.setdefault(user_id, []).append(fila)
+
+        try:
+            while True:
+                postagem = fila.get()
+                yield postagem
+        except Exception as e:
+            print(f"Erro no stream do usuário {user_id}: {e}")
+        finally:
+            print(f"Stream encerrado para {user_id}")
+            clientes_streams[user_id].remove(fila)
+            if not clientes_streams[user_id]:
+                del clientes_streams[user_id]
 
     def SincronizarRelogio(self, request, context):
         global relogio_fisico
@@ -109,7 +164,6 @@ class RedeSocialServicer(redesocial_pb2_grpc.RedeSocialServicer):
         escrever_log(f"Sincronização recebida do coordenador. Offset = {offset}ms")
         return redesocial_pb2.ClockReply(offset=offset)
 
-# ========== INICIAR SERVIDOR ==========
 def serve():
     global relogio_fisico
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
@@ -121,7 +175,7 @@ def serve():
     try:
         while True:
             time.sleep(5)
-            relogio_fisico = get_relogio_fisico()  # Atualiza o relógio físico com variação
+            relogio_fisico = get_relogio_fisico()
     except KeyboardInterrupt:
         escrever_log("Servidor encerrado.")
         server.stop(0)

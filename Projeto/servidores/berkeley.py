@@ -9,16 +9,13 @@ import redesocial_pb2
 import redesocial_pb2_grpc
 from clock import get_relogio_fisico, set_relogio_fisico
 
-# ========== CONFIGURAÇÕES ==========
 COORDINADOR = "server1"
 SERVIDORES = ["server1", "server2", "server3"]
-PORT = 50053  # A porta de comunicação do coordenador
+PORT = 50053  
 
-# ========== ESTADO ==========
 relogio_fisico = get_relogio_fisico()
 offsets = {}
 
-# ========== FUNÇÕES AUXILIARES ==========
 def escrever_log(msg):
     now = datetime.now().strftime("%H:%M:%S")
     linha = f"[{now}] {msg}"
@@ -33,27 +30,24 @@ def sincronizar_com_servidores():
 
     for servidor in SERVIDORES:
         if servidor == COORDINADOR:
-            continue  # O coordenador não precisa sincronizar com ele mesmo
+            continue 
 
         try:
             channel = grpc.insecure_channel(f'localhost:{50051 if servidor == "server1" else 50052}')
             stub = redesocial_pb2_grpc.RedeSocialStub(channel)
 
-            # Solicita ao servidor o relógio físico atual
             response = stub.SincronizarRelogio(redesocial_pb2.ClockRequest(relogio_fisico=relogio_fisico))
             offset = response.offset
 
-            # Ajusta o relógio do servidor
             offsets[servidor] = offset
             escrever_log(f"Servidor {servidor} sincronizado. Offset: {offset}ms")
-            # Ajuste o relógio do servidor com o offset
+
             novo_relogio = get_relogio_fisico() + offset
             set_relogio_fisico(novo_relogio)
 
         except grpc.RpcError as e:
             escrever_log(f"Erro ao sincronizar com o servidor {servidor}: {e}")
 
-# ========== INICIAR COORDENADOR ==========
 def serve():
     """
     Inicia o coordenador, que vai fornecer os offsets para os servidores.
@@ -63,7 +57,6 @@ def serve():
 
     while True:
         try:
-            # A cada 10 segundos, sincroniza os relógios dos servidores
             time.sleep(10)
             sincronizar_com_servidores()
 

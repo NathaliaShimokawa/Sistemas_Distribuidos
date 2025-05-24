@@ -17,7 +17,7 @@ def salvar_conversas(conversas):
 def adicionar_mensagem(from_, to, conteudo, logico):
     conversas = carregar_conversas()
 
-    chave = '|'.join(sorted([from_, to]))  # garante "ana|joao" igual a "joao|ana"
+    chave = '|'.join(sorted([from_, to]))
 
     if chave not in conversas:
         conversas[chave] = []

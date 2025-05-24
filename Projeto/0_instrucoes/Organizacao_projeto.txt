@@ -1,0 +1,17 @@
+A pasta clientes contém:
+-User.js
+-.proto go
+
+A pasta servidores contém:
+-Os três servidores python
+-Berkeley
+-Clock
+-Gerenciador de mensagem
+-Gerenciador de postagem (GerenciadorArquivo)
+-Gerenciador de seguidores
+-json com o registro de mensagens, seguidores e postagens
+-.proto python
+
+A pasta raiz contém:
+-User.go
+-.proto js
